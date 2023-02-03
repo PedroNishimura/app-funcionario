@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
 import * as bcrypt from 'bcrypt';
 
-export const UserSchema = new Schema({
+export const EmployerSchema = new Schema({
   userName: {
     type: String
   },
@@ -10,7 +10,7 @@ export const UserSchema = new Schema({
   }
 });
 
-UserSchema.pre('save', async function(next: (err? : Error) => void) {
+EmployerSchema.pre('save', async function(next: (err? : Error) => void) {
   try {
     if (!this.isModified('password')) {
       return next();
