@@ -2,7 +2,7 @@ import { Schema } from "mongoose";
 import * as bcrypt from 'bcrypt';
 
 export const EmployerSchema = new Schema({
-  userName: {
+  name: {
     type: String
   },
   password: {

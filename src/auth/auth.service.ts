@@ -1,24 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose'
+import { Employer } from 'src/employers/models/employers.model';
+import { sign } from 'jsonwebtoken';
+import { Request } from 'express';
+import { JwtPayload } from './models/jwt-payload.model';
 
 @Injectable()
 export class AuthService {
-  create() {
-    return 'This action adds a new auth';
+  constructor(
+    @InjectModel('Employer')
+    private readonly employerModel: Model<Employer>
+  ) {}
+
+  public async createAccessToken(employerId: string): Promise<string> {
+    return sign({ employerId }, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXP});
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  public async validateUser(jwtPayload: JwtPayload): Promise<Employer> {
+    const employer = await this.employerModel.findOne({ _id: jwtPayload.employerId });
+
+    if (!employer) {
+      throw new UnauthorizedException('User incorrect');
+    }
+
+    return employer;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+  private jwtExtractor(request: Request): string {
+    const authHeader = request.headers.authorization;
+
+    if (!authHeader) {
+      throw new BadRequestException('Bad request');
+    }
+
+    const [, token] = authHeader.split(' ');
+
+    return token;
   }
 
-  update(id: number) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  public returnJwtExtractor(): (request: Request) => string {
+    return this.jwtExtractor;
   }
 }

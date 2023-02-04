@@ -1,32 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Post, Get, Delete, UseGuards } from '@nestjs/common';
 import { EmployersService } from './employers.service';
+import { SignUpDto } from './dto/signUp.dto';
+import { Employer } from './models/employers.model';
+import { SignInDto } from './dto/signIn.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('employers')
 export class EmployersController {
   constructor(private readonly employersService: EmployersService) {}
 
-  @Post()
-  create() {
-    return this.employersService.create();
+  @Post('signUp')
+  public async signUp(@Body() signUpDto: SignUpDto): Promise<Employer> {
+    return this.employersService.signUp(signUpDto);
   }
 
-  @Get()
-  findAll() {
+  @Post('signIn')
+  public async signIn(@Body() signInDto: SignInDto): Promise<{ name: string; jwtToken: string; }> {
+    return this.employersService.signIn(signInDto);
+  }
+
+  @Get('findAll')
+  @UseGuards(AuthGuard('jwt'))
+  public async findAll(): Promise<Employer[]> {
     return this.employersService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.employersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string) {
-    return this.employersService.update(+id);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.employersService.remove(+id);
+  @Delete('deleteAll')
+  @UseGuards(AuthGuard('jwt'))
+  public async deleteAll(){
+    return this.employersService.deleteAll();
   }
 }
